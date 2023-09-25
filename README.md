@@ -3,7 +3,7 @@ This repository contains the code used to simulate results for the paper **The u
 effect - a simulation study**. 
 
 ## Background 
-This project looked to evaluate the power and Type I error of the Restricted Mean Survival Time (RMST) endpoint when treatment effect is explained by multiple covariates. Operating characteristics of each estimand were evaluated when RMST was evaluated using a non-parametric, fully-specified parametric, and mis-specified parametric approach. 
+This project looked to evaluate the power and Type I error of the Restricted Mean Survival Time (RMST) endpoint when treatment effect is explained by multiple covariates. Operating characteristics of each estimand were evaluated when RMST was evaluated using a non-parametric, fully specified parametric, and misspecified parametric approach. 
 
 ## Description of R files
 * **functions_interaction.R** - code for section 4: functions required to generate trials and associated z-values for RMST estimands of treatment effect when efficacy is explained across multiple covariates.
