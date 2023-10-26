@@ -9,3 +9,7 @@ This project evaluates the power and type I error of the Restricted Mean Surviva
 * **functions_missurvival.R** - code for section 4: functions required to generate trials and associated Z-statistics for RMST estimators of treatment effect when efficacy is explained across multiple covariates.
   
 * **simulations_missurvival.R** - code for section 4: code required to assess power and type I error for the RMST estimator. Functions required to run this code are defined in `functions_missurvival.R`.
+
+* **functions_crossing.R** - code for section 5: functions required to generate trials and associated Z-statistics for RMST estimators of treatment effect when survival curves are known to cross.
+  
+* **simulations_missurvival.R** - code for section 5: code required to assess power and type I error for the RMST estimator with crossing survival curves. Functions required to run this code are defined in `functions_crossing.R`.
