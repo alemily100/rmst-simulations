@@ -1,3 +1,14 @@
+library(survival)
+library(tidyverse)
+library(survminer)
+#library(Rlab)
+library(calculus)
+library(dplyr)
+library(eha)
+#library(rgl)
+library(survRM2)
+library(parallel)
+
 ###########################generate_ps##########################################
 #Description: generate time to observed failure for a sample of patients 
 
@@ -161,7 +172,7 @@ h_scale_t<- function(log_scale, b_1, b_2, b_12, b_3, t_star){
           (exp(log_scale)/exp(b_1+b_3))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_1+b_3)))+
           (exp(log_scale)/exp(b_1))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_1)))) - 
     0.25*((exp(log_scale)/exp(b_2+b_3))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_2+b_3))) + 
-            (exp(log_scale)/exp(b_2))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_2))) + 
+            (exp(log_scale)/exp(b_2))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_2)))+ 
             (exp(log_scale)/exp(b_3))*(1-exp(-(1/exp(log_scale))*t_star*exp(b_3)))+
             (exp(log_scale))*(1-exp(-(1/exp(log_scale))*t_star)))}
 
@@ -255,6 +266,11 @@ miss_param_rmst_var<- function(log_of_scale, beta1, beta2,beta_12, t_star, simul
 #Output: vector of z-values and their breakdown
 generate_z_values<- function(sample_size, base_hazard, vec_cov_coef, censoring_rate, arrival_interval, end_time, t_star){
   data.set<-generate_ps(sample_size,1,vec_cov_coef[1],vec_cov_coef[1],vec_cov_coef[2],vec_cov_coef[2],vec_cov_coef[3], vec_cov_coef[4], log(base_hazard),log(base_hazard),censoring_rate,arrival_interval,end_time)
+  data_columns <- apply(as.matrix(data.set[, c(2, 3, 5, 7)]), 2, as.numeric)
+  while(nrow(unique(data_columns[data_columns[,4]==1,]))<8){
+    data.set<-generate_ps(sample_size,1,vec_cov_coef[1],vec_cov_coef[1],vec_cov_coef[2],vec_cov_coef[2],vec_cov_coef[3], vec_cov_coef[4], log(base_hazard),log(base_hazard),censoring_rate,arrival_interval,end_time)
+    data_columns <- apply(as.matrix(data.set[, c(2, 3, 5, 7)]), 2, as.numeric)
+    }
   #Z-value for non-parametric RMST estimate 
   if(t_star<=min(max((data.set%>%filter(treatment==1))$surv_times), max((data.set%>%filter(treatment==0))$surv_times))){
     model.2 <- rmst2(time=data.set$surv_times,
@@ -264,11 +280,6 @@ generate_z_values<- function(sample_size, base_hazard, vec_cov_coef, censoring_r
     RMST.val <- model.2$RMST.arm1$rmst[1]-model.2$RMST.arm0$rmst[1]
     RMST.var <- model.2$RMST.arm1$rmst[2]^2+model.2$RMST.arm0$rmst[2]^2
     z.nonparam <- RMST.val/sqrt(RMST.var)
-  }else{
-    z.nonparam <- NA
-    RMST.val<-NA
-    RMST.var<-NA
-  }
   #Z-value for fully specified parametric RMST estimate 
   cox_model<- phreg(Surv(surv_times,status)~treatment+inherit+sex+treatment*inherit, data=data.set, shape=1)
   logscale<-as.numeric(cox_model$coefficients[5])
@@ -290,8 +301,16 @@ generate_z_values<- function(sample_size, base_hazard, vec_cov_coef, censoring_r
   treatment_effect<- 0.5*(area(t_star, exp(-(logscale.miss)), c(b1.miss, b2.miss, b12.miss),c(1,1,1))+area(t_star, exp(-(logscale.miss)), c(b1.miss, b2.miss, b12.miss),c(1,0,0)))-
     0.5*(area(t_star, exp((-logscale.miss)), c(b1.miss, b2.miss, b12.miss),c(0,1,0)) + area(t_star, exp(-(logscale.miss)), c(b1.miss, b2.miss, b12.miss),c(0,0,0)))
   z.miss.param<- treatment_effect/se.miss
-  return(c(z.nonparam, RMST.val, sqrt(RMST.var), z.param, full_te, full_se, z.miss.param, treatment_effect, se.miss))
+  #cox ph model 
+  cox<- phreg(Surv(surv_times, status)~treatment + inherit + sex+ treatment*inherit, data=data.set, shape=1)
+  z.cox<- cox$coefficients[1]/sqrt(cox$var[1,1])
+  return(c(z.nonparam, RMST.val, sqrt(RMST.var), z.param, full_te, full_se, z.miss.param, treatment_effect, se.miss, z.cox))
+  }else{
+  return(rep(NA, times=10))
+  }
 }
+
+
 
 
 
