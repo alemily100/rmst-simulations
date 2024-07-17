@@ -55,7 +55,7 @@ for(i in 1:length(t_star.grid)){
   
   #Simulation study at this set of parameters
   start_time <- Sys.time()
-  vals <- parSapply(cl, 1:N, function(sim.rep){
+  vals <- parSapply(cl, 1:10, function(sim.rep){
     
     #Simulate patients with crossing survival curves
     surv.data <- generate_ps(n,t1,beta1a,beta1b,beta2a,beta2b,
